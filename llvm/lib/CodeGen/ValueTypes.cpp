@@ -214,6 +214,7 @@ Type *EVT::getTypeForEVT(LLVMContext &Context) const {
     assert(isExtended() && "Type is not extended!");
     return LLVMTy;
   case MVT::isVoid:  return Type::getVoidTy(Context);
+  case MVT::i1:      return Type::getInt1Ty(Context);
   case MVT::x86mmx:  return llvm::FixedVectorType::get(llvm::IntegerType::get(Context, 64), 1);
   case MVT::aarch64svcount:
     return TargetExtType::get(Context, "aarch64.svcount");
