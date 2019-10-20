@@ -1301,12 +1301,11 @@ public:
   }
 
   virtual LegalizerHelper::LegalizeResult
-  legalizeCustom(MachineInstr &MI, MachineRegisterInfo &MRI,
-                 MachineIRBuilder &MIRBuilder, LostDebugLocObserver &LocObserver,
-                 LegalizerHelper &Helper) const {
+  legalizeCustomMaybeLegal(LegalizerHelper &Helper, MachineInstr &MI,
+                           LostDebugLocObserver &LocObserver) const {
     return legalizeCustom(Helper, MI, LocObserver)
-               ? LegalizerHelper::Legalized
-               : LegalizerHelper::UnableToLegalize;
+           ? LegalizerHelper::Legalized
+           : LegalizerHelper::UnableToLegalize;
   }
 
   /// \returns true if MI is either legal or has been legalized and false if not
