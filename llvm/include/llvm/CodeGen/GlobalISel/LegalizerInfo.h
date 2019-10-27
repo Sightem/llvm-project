@@ -17,6 +17,7 @@
 #include "llvm/ADT/SmallBitVector.h"
 #include "llvm/ADT/SmallVector.h"
 #include "llvm/CodeGen/GlobalISel/LegacyLegalizerInfo.h"
+#include "llvm/CodeGen/GlobalISel/LegalizerHelper.h"
 #include "llvm/CodeGen/LowLevelType.h"
 #include "llvm/CodeGen/MachineMemOperand.h"
 #include "llvm/CodeGen/TargetOpcodes.h"
@@ -1297,6 +1298,15 @@ public:
   virtual bool legalizeCustom(LegalizerHelper &Helper, MachineInstr &MI,
                               LostDebugLocObserver &LocObserver) const {
     llvm_unreachable("must implement this if custom action is used");
+  }
+
+  virtual LegalizerHelper::LegalizeResult
+  legalizeCustom(MachineInstr &MI, MachineRegisterInfo &MRI,
+                 MachineIRBuilder &MIRBuilder, LostDebugLocObserver &LocObserver,
+                 LegalizerHelper &Helper) const {
+    return legalizeCustom(Helper, MI, LocObserver)
+               ? LegalizerHelper::Legalized
+               : LegalizerHelper::UnableToLegalize;
   }
 
   /// \returns true if MI is either legal or has been legalized and false if not
