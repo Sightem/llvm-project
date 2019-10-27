@@ -334,6 +334,9 @@ def warn_anyx86_excessive_regsave : Warning<
   " with attribute 'no_caller_saved_registers'"
   " or be compiled with '-mgeneral-regs-only'">,
   InGroup<DiagGroup<"excessive-regsave">>;
+def err_anyz80_interrupt_attribute : Error<
+  "%select{z80|ez80}0 'interrupt' attribute only applies to functions that "
+  "have %select{a 'void' return type|no parameters}1">;
 def warn_arm_interrupt_calling_convention : Warning<
    "call to function without interrupt attribute could clobber interruptee's VFP registers">,
    InGroup<Extra>;

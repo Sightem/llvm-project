@@ -19,6 +19,7 @@
 #include "Arch/SystemZ.h"
 #include "Arch/VE.h"
 #include "Arch/X86.h"
+#include "Arch/Z80.h"
 #include "HIPAMD.h"
 #include "Hexagon.h"
 #include "MSP430.h"
@@ -114,6 +115,8 @@ static bool useFramePointerForTargetByDefault(const llvm::opt::ArgList &Args,
   case llvm::Triple::csky:
   case llvm::Triple::loongarch32:
   case llvm::Triple::loongarch64:
+  case llvm::Triple::z80:
+  case llvm::Triple::ez80:
     return !clang::driver::tools::areOptimizationsEnabled(Args);
   default:
     break;
@@ -618,6 +621,10 @@ std::string tools::getCPUName(const Driver &D, const ArgList &Args,
   case llvm::Triple::loongarch32:
   case llvm::Triple::loongarch64:
     return loongarch::getLoongArchTargetCPU(Args, T);
+
+  case llvm::Triple::z80:
+  case llvm::Triple::ez80:
+    return std::string(z80::getZ80TargetCPU(Args, T));
   }
 }
 
@@ -705,6 +712,10 @@ void tools::getTargetFeatures(const Driver &D, const llvm::Triple &Triple,
   case llvm::Triple::loongarch32:
   case llvm::Triple::loongarch64:
     loongarch::getLoongArchTargetFeatures(D, Triple, Args, Features);
+    break;
+  case llvm::Triple::z80:
+  case llvm::Triple::ez80:
+    z80::getZ80TargetFeatures(D, Triple, Args, Features);
     break;
   }
 
