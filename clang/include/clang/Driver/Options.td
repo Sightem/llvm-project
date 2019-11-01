@@ -8514,3 +8514,11 @@ def spirv : DXCFlag<"spirv">,
 def fspv_target_env_EQ : Joined<["-"], "fspv-target-env=">, Group<dxc_Group>,
   HelpText<"Specify the target environment">,
   Values<"vulkan1.2, vulkan1.3">;
+
+//===----------------------------------------------------------------------===//
+// Temp Debug Options
+//===----------------------------------------------------------------------===//
+
+def test_ez80_hack : Flag<["-"], "test-ez80-hack">,
+  Flags<[CC1Option]>, HelpText<"Enable hack for testing ez80 code generation.">,
+  MarshallingInfoFlag<TargetOpts<"TestEZ80Hack">>;
