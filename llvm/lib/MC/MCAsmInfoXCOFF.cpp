@@ -40,6 +40,7 @@ MCAsmInfoXCOFF::MCAsmInfoXCOFF() {
   COMMDirectiveAlignmentIsInBytes = false;
   LCOMMDirectiveAlignmentType = LCOMM::Log2Alignment;
   HasDotTypeDotSizeDirective = false;
+  LGloblDirective = "\t.lglobl\t";
   ParseInlineAsmUsingAsmParser = true;
 
   ExceptionsType = ExceptionHandling::AIX;
