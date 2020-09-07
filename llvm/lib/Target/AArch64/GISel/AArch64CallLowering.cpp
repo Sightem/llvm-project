@@ -1249,7 +1249,7 @@ bool AArch64CallLowering::lowerTailCall(
   if (MIB->getOperand(0).isReg())
     constrainOperandRegClass(MF, *TRI, MRI, *MF.getSubtarget().getInstrInfo(),
                              *MF.getSubtarget().getRegBankInfo(), *MIB,
-                             MIB->getDesc(), MIB->getOperand(0), 0);
+                             Info.Callee, 0);
 
   MF.getFrameInfo().setHasTailCall();
   Info.LoweredTailCall = true;
@@ -1432,8 +1432,7 @@ bool AArch64CallLowering::lowerCall(MachineIRBuilder &MIRBuilder,
   // constraint of that instruction.
   if (MIB->getOperand(CalleeOpNo).isReg())
     constrainOperandRegClass(MF, *TRI, MRI, *Subtarget.getInstrInfo(),
-                             *Subtarget.getRegBankInfo(), *MIB, MIB->getDesc(),
-                             MIB->getOperand(CalleeOpNo), CalleeOpNo);
+                             *Subtarget.getRegBankInfo(), *MIB, Info.Callee, 0);
 
   // Finally we can copy the returned value back into its virtual-register. In
   // symmetry with the arguments, the physical register must be an
