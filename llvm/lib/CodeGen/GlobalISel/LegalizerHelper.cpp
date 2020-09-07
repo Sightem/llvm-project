@@ -126,8 +126,7 @@ LegalizerHelper::legalizeInstrStep(MachineInstr &MI,
   if (MI.getOpcode() == TargetOpcode::COPY)
     return AlreadyLegal;
   if (isa<GIntrinsic>(MI))
-    return LI.legalizeIntrinsic(*this, MI, LocObserver) ? Legalized
-                                                        : UnableToLegalize;
+    return LI.legalizeIntrinsic(*this, MI) ? Legalized : UnableToLegalize;
   auto Step = LI.getAction(MI, MRI);
   switch (Step.Action) {
   case Legal:
@@ -1361,7 +1360,7 @@ LegalizerHelper::LegalizeResult LegalizerHelper::narrowScalar(MachineInstr &MI,
     LLT LeftoverTy;
     SmallVector<Register, 4> PartRegs;
     SmallVector<Register, 1> LeftoverRegs;
-    if (!extractParts(Op1, Op1Ty, NarrowTy, LeftoverTy, PartRegs, LeftoverRegs))
+    if (!extractParts(Op1, Op1Ty, NarrowTy, LeftoverTy, PartRegs, LeftoverRegs, MIRBuilder, MRI))
       return UnableToLegalize;
     LeftoverTy = LLT{};
     LeftoverRegs.clear();
