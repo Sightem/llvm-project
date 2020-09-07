@@ -128,8 +128,7 @@ LegalizerHelper::legalizeInstrStep(MachineInstr &MI,
   if (MI.getOpcode() == TargetOpcode::COPY)
     return AlreadyLegal;
   if (isa<GIntrinsic>(MI))
-    return LI.legalizeIntrinsic(*this, MI, LocObserver) ? Legalized
-                                                        : UnableToLegalize;
+    return LI.legalizeIntrinsic(*this, MI) ? Legalized : UnableToLegalize;
   auto Step = LI.getAction(MI, MRI);
   switch (Step.Action) {
   case Legal:
