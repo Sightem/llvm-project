@@ -8519,6 +8519,11 @@ def fspv_target_env_EQ : Joined<["-"], "fspv-target-env=">, Group<dxc_Group>,
 // Temp Debug Options
 //===----------------------------------------------------------------------===//
 
-def test_ez80_hack : Flag<["-"], "test-ez80-hack">,
-  Flags<[CC1Option]>, HelpText<"Enable hack for testing ez80 code generation.">,
+def fforce_mangle_main_argc_argv : Flag<["-"], "fforce-mangle-main-argc-argv">,
+  Visibility<[CC1Option]>,
+  HelpText<"Force main to be mangled as __main_argc_argv if it has arguments.">,
+  MarshallingInfoFlag<TargetOpts<"ForceMangleMainArgcArgv">>;
+
+def test_ez80_hack : Flag<["-"], "test-ez80-hack">, Visibility<[CC1Option]>,
+  HelpText<"Enable hack for testing ez80 code generation.">,
   MarshallingInfoFlag<TargetOpts<"TestEZ80Hack">>;
