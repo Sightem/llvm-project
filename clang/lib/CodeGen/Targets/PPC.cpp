@@ -17,7 +17,7 @@ static Address complexTempStructure(CodeGenFunction &CGF, Address VAListAddr,
                                     CharUnits EltSize, const ComplexType *CTy) {
   Address Addr =
       emitVoidPtrDirectVAArg(CGF, VAListAddr, CGF.Int8Ty, SlotSize * 2,
-                             SlotSize, SlotSize, /*AllowHigher*/ true);
+                             SlotSize, SlotSize, SlotSize, /*AllowHigher*/ true);
 
   Address RealAddr = Addr;
   Address ImagAddr = RealAddr;

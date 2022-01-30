@@ -166,6 +166,7 @@ Address
 CodeGen::emitVoidPtrDirectVAArg(CodeGenFunction &CGF, Address VAListAddr,
                                 llvm::Type *DirectTy, CharUnits DirectSize,
                                 CharUnits DirectAlign, CharUnits SlotSize,
+                                CharUnits SlotAlign,
                                 bool AllowHigherAlign, bool ForceRightAdjust) {
   // Cast the element type to i8* if necessary.  Some platforms define
   // va_list as a struct containing an i8* instead of just an i8*.
@@ -176,11 +177,11 @@ CodeGen::emitVoidPtrDirectVAArg(CodeGenFunction &CGF, Address VAListAddr,
 
   // If the CC aligns values higher than the slot size, do so if needed.
   Address Addr = Address::invalid();
-  if (AllowHigherAlign && DirectAlign > SlotSize) {
+  if (AllowHigherAlign && DirectAlign > SlotAlign) {
     Addr = Address(emitRoundPointerUpToAlignment(CGF, Ptr, DirectAlign),
                    CGF.Int8Ty, DirectAlign);
   } else {
-    Addr = Address(Ptr, CGF.Int8Ty, SlotSize);
+    Addr = Address(Ptr, CGF.Int8Ty, SlotAlign);
   }
 
   // Advance the pointer past the argument, then store that back.
@@ -202,7 +203,8 @@ CodeGen::emitVoidPtrDirectVAArg(CodeGenFunction &CGF, Address VAListAddr,
 Address CodeGen::emitVoidPtrVAArg(CodeGenFunction &CGF, Address VAListAddr,
                                   QualType ValueTy, bool IsIndirect,
                                   TypeInfoChars ValueInfo,
-                                  CharUnits SlotSizeAndAlign,
+                                  CharUnits SlotSize,
+                                  CharUnits SlotAlign,
                                   bool AllowHigherAlign,
                                   bool ForceRightAdjust) {
   // The size and alignment of the value that was passed directly.
@@ -223,7 +225,7 @@ Address CodeGen::emitVoidPtrVAArg(CodeGenFunction &CGF, Address VAListAddr,
   }
 
   Address Addr = emitVoidPtrDirectVAArg(CGF, VAListAddr, DirectTy, DirectSize,
-                                        DirectAlign, SlotSizeAndAlign,
+                                        DirectAlign, SlotSize, SlotAlign,
                                         AllowHigherAlign, ForceRightAdjust);
 
   if (IsIndirect) {
@@ -231,6 +233,15 @@ Address CodeGen::emitVoidPtrVAArg(CodeGenFunction &CGF, Address VAListAddr,
   }
 
   return Addr;
+}
+
+Address CodeGen::emitVoidPtrVAArg(CodeGenFunction &CGF, Address VAListAddr,
+                         QualType ValueTy, bool IsIndirect,
+                         TypeInfoChars ValueInfo, CharUnits SlotSizeAndAlign,
+                         bool AllowHigherAlign, bool ForceRightAdjust) {
+  return emitVoidPtrVAArg(CGF, VAListAddr, ValueTy, IsIndirect, ValueInfo,
+                          SlotSizeAndAlign, SlotSizeAndAlign, AllowHigherAlign,
+                          ForceRightAdjust);
 }
 
 Address CodeGen::emitMergePHI(CodeGenFunction &CGF, Address Addr1,
