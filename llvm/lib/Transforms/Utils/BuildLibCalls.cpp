@@ -354,10 +354,10 @@ bool llvm::inferNonMandatoryLibFuncAttrs(Function &F,
     Changed |= setDoesNotCapture(F, 1);
     Changed |= setOnlyReadsMemory(F, 1);
     break;
-  case LibFunc_strcmp:      // 0,1
-  case LibFunc_strspn:      // 0,1
-  case LibFunc_strncmp:     // 0,1
-  case LibFunc_strcspn:     // 0,1
+  case LibFunc_strcmp:  // 0,1
+  case LibFunc_strspn:  // 0,1
+  case LibFunc_strncmp: // 0,1
+  case LibFunc_strcspn: // 0,1
     Changed |= setDoesNotThrow(F);
     Changed |= setOnlyAccessesArgMemory(F);
     Changed |= setWillReturn(F);
@@ -1136,7 +1136,7 @@ bool llvm::inferNonMandatoryLibFuncAttrs(Function &F,
     Changed |= setNoReturn(F);
     // Don't add `nofree` on `__cxa_throw`
     return Changed;
-  // int __nvvm_reflect(const char *)
+    // int __nvvm_reflect(const char *)
   case LibFunc_nvvm_reflect:
     Changed |= setRetAndArgsNoUndef(F);
     Changed |= setDoesNotAccessMemory(F);
@@ -1478,8 +1478,8 @@ bool llvm::isLibFuncEmittable(const Module *M, const TargetLibraryInfo *TLI,
          isLibFuncEmittable(M, TLI, TheLibFunc);
 }
 
-bool llvm::hasFloatFn(const Module *M, const TargetLibraryInfo *TLI, Type *Ty,
-                      LibFunc DoubleFn, LibFunc FloatFn, LibFunc LongDoubleFn) {
+bool llvm::hasFloatFn(const Module *M, const TargetLibraryInfo *TLI, Type *Ty, LibFunc DoubleFn,
+                      LibFunc FloatFn, LibFunc LongDoubleFn) {
   switch (Ty->getTypeID()) {
   case Type::HalfTyID:
     return false;
@@ -1527,8 +1527,7 @@ static IntegerType *getSizeTTy(IRBuilderBase &B, const TargetLibraryInfo *TLI) {
 static Value *emitLibCall(LibFunc TheLibFunc, Type *ReturnType,
                           ArrayRef<Type *> ParamTypes,
                           ArrayRef<Value *> Operands, IRBuilderBase &B,
-                          const TargetLibraryInfo *TLI,
-                          bool IsVaArgs = false) {
+                          const TargetLibraryInfo *TLI, bool IsVaArgs = false) {
   Module *M = B.GetInsertBlock()->getModule();
   if (!isLibFuncEmittable(M, TLI, TheLibFunc))
     return nullptr;
@@ -1771,7 +1770,7 @@ Value *llvm::emitVSPrintf(Value *Dest, Value *Fmt, Value *VAList,
 static void appendTypeSuffix(Value *Op, StringRef &Name,
                              SmallString<20> &NameBuffer) {
   if (!Op->getType()->isDoubleTy()) {
-      NameBuffer += Name;
+    NameBuffer += Name;
 
     if (Op->getType()->isFloatTy())
       NameBuffer += 'f';
@@ -1823,25 +1822,22 @@ Value *llvm::emitUnaryFloatFnCall(Value *Op, const TargetLibraryInfo *TLI,
                                   const AttributeList &Attrs) {
   // Get the name of the function according to TLI.
   Module *M = B.GetInsertBlock()->getModule();
-  LibFunc TheLibFunc;
-  StringRef Name = getFloatFn(M, TLI, Op->getType(), DoubleFn, FloatFn,
-                              LongDoubleFn, TheLibFunc);
+  LibFunc TheLibFunc;StringRef Name =
+      getFloatFn(M,TLI, Op->getType(), DoubleFn, FloatFn, LongDoubleFn, TheLibFunc);
 
   return emitUnaryFloatFnCallHelper(Op, TheLibFunc, Name, B, Attrs, TLI);
 }
 
-static Value *emitBinaryFloatFnCallHelper(Value *Op1, Value *Op2,
-                                          LibFunc TheLibFunc,
-                                          StringRef Name, IRBuilderBase &B,
-                                          const AttributeList &Attrs,
-                                          const TargetLibraryInfo *TLI) {
+static Value *
+emitBinaryFloatFnCallHelper(Value *Op1, Value *Op2,LibFunc TheLibFunc, StringRef Name,
+                            IRBuilderBase &B, const AttributeList &Attrs,
+                            const TargetLibraryInfo *TLI ) {
   assert((Name != "") && "Must specify Name to emitBinaryFloatFnCall");
 
   Module *M = B.GetInsertBlock()->getModule();
-  FunctionCallee Callee = getOrInsertLibFunc(M, *TLI, TheLibFunc, Op1->getType(),
-                                             Op1->getType(), Op2->getType());
+  FunctionCallee Callee = getOrInsertLibFunc(M, *TLI, TheLibFunc, Op1->getType(), Op1->getType(), Op2->getType());
   inferNonMandatoryLibFuncAttrs(M, Name, *TLI);
-  CallInst *CI = B.CreateCall(Callee, { Op1, Op2 }, Name);
+  CallInst *CI = B.CreateCall(Callee, {Op1, Op2}, Name);
 
   // The incoming attribute set may have come from a speculatable intrinsic, but
   // is being replaced with a library call which is not allowed to be
@@ -1877,9 +1873,8 @@ Value *llvm::emitBinaryFloatFnCall(Value *Op1, Value *Op2,
                                    const AttributeList &Attrs) {
   // Get the name of the function according to TLI.
   Module *M = B.GetInsertBlock()->getModule();
-  LibFunc TheLibFunc;
-  StringRef Name = getFloatFn(M, TLI, Op1->getType(), DoubleFn, FloatFn,
-                              LongDoubleFn, TheLibFunc);
+  LibFunc TheLibFunc;StringRef Name =
+      getFloatFn(M,TLI, Op1->getType(), DoubleFn, FloatFn, LongDoubleFn, TheLibFunc);
 
   return emitBinaryFloatFnCallHelper(Op1, Op2, TheLibFunc, Name, B, Attrs, TLI);
 }
