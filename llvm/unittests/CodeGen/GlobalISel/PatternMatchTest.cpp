@@ -46,7 +46,7 @@ TEST_F(AArch64GISelMITest, MatchIntConstantRegister) {
     GTEST_SKIP();
   auto MIBCst = B.buildConstant(LLT::scalar(64), 42);
   std::optional<ValueAndVReg> Src0;
-  bool match = mi_match(MIBCst.getReg(0), *MRI, m_GCst(Src0));
+  bool match = mi_match(MIBCst.getReg(0), *MRI, m_ICst(Src0));
   EXPECT_TRUE(match);
   EXPECT_EQ(Src0->VReg, MIBCst.getReg(0));
 }
@@ -740,11 +740,11 @@ TEST_F(AArch64GISelMITest, MatchFPOrIntConst) {
   std::optional<ValueAndVReg> ValReg;
   std::optional<FPValueAndVReg> FValReg;
 
-  EXPECT_TRUE(mi_match(IntOne, *MRI, m_GCst(ValReg)));
-  EXPECT_EQ(IntOne, ValReg->VReg);
+  EXPECT_TRUE(mi_match(IntOne, *MRI, m_ICst(ValReg)));
+  EXPECT_EQ(IntOne, ValReg.VReg);
   EXPECT_FALSE(mi_match(IntOne, *MRI, m_GFCst(FValReg)));
 
-  EXPECT_FALSE(mi_match(FPOne, *MRI, m_GCst(ValReg)));
+  EXPECT_FALSE(mi_match(FPOne, *MRI, m_ICst(ValReg)));
   EXPECT_TRUE(mi_match(FPOne, *MRI, m_GFCst(FValReg)));
   EXPECT_EQ(FPOne, FValReg->VReg);
 }
