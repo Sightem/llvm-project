@@ -271,16 +271,18 @@ namespace CallingConv {
     AArch64_SME_ABI_Support_Routines_PreserveMost_From_X1 = 111,
 
     /// The highest possible ID. Must be some 2^k - 1.
+    /// Calling convention for passing an OS-defined constant in the IY register.
+    Z80_TIFlags = 112,
+
     /// Calling conventions used for special Z80 rtlib functions
     /// which pass in registers and save all registers.
-    Z80_LibCall = 111,
-    Z80_LibCall_AB = 112,
-    Z80_LibCall_AC = 113,
-    Z80_LibCall_BC = 114,
-    Z80_LibCall_L = 115,
-    Z80_LibCall_F = 116,
-    Z80_LibCall_16 = 117,
-    Z80_TIFlags = 118,
+    Z80_LibCall = 113,
+    Z80_LibCall_AB = 114,
+    Z80_LibCall_AC = 115,
+    Z80_LibCall_BC = 116,
+    Z80_LibCall_L = 117,
+    Z80_LibCall_F = 118,
+    Z80_LibCall_16 = 119,
 
     /// The highest possible calling convention ID. Must be some 2^k - 1.
     MaxID = 1023
