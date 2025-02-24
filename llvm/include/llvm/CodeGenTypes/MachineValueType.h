@@ -312,7 +312,7 @@ namespace llvm {
     /// be set and the runtime size will be a positive integer multiple of the
     /// base size.
     TypeSize getSizeInBits() const {
-      if (SimpleTy == i24) return TypeSize::Fixed(24);
+      if (SimpleTy == i24) return TypeSize::getFixed(24);
       static constexpr TypeSize SizeTable[] = {
 #define GET_VT_ATTR(Ty, N, Sz, Any, Int, FP, Vec, Sc, Tup, NF, NElem, EltTy) \
     TypeSize(Sz, Sc || Tup || Ty == aarch64svcount /* FIXME: Not in the td.    \
