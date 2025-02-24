@@ -1146,6 +1146,12 @@ enum PredefinedTypeIDs {
 #define HLSL_INTANGIBLE_TYPE(Name, Id, SingletonId) PREDEF_TYPE_##Id##_ID,
 #include "clang/Basic/HLSLIntangibleTypes.def"
 
+  /// The '__uint48_t' type.
+  PREDEF_TYPE_UINT48_ID,
+
+  /// The '__int48_t' type.
+  PREDEF_TYPE_INT48_ID,
+
   /// The placeholder type for unresolved templates.
   PREDEF_TYPE_UNRESOLVED_TEMPLATE,
   // Sentinel value. Considered a predefined type but not useable as one.

@@ -20,6 +20,7 @@
 #include "Arch/VE.h"
 #include "Arch/X86.h"
 #include "BareMetal.h"
+#include "Arch/Z80.h"
 #include "HIPAMD.h"
 #include "Hexagon.h"
 #include "MSP430.h"
@@ -106,6 +107,8 @@ static bool useFramePointerForTargetByDefault(const llvm::opt::ArgList &Args,
   case llvm::Triple::loongarch32:
   case llvm::Triple::loongarch64:
   case llvm::Triple::m68k:
+  case llvm::Triple::z80:
+  case llvm::Triple::ez80:
     return !clang::driver::tools::areOptimizationsEnabled(Args);
   default:
     break;
@@ -810,6 +813,10 @@ void tools::getTargetFeatures(const Driver &D, const llvm::Triple &Triple,
   for (auto Feature : unifyTargetFeatures(Features)) {
     CmdArgs.push_back(IsAux ? "-aux-target-feature" : "-target-feature");
     CmdArgs.push_back(Feature.data());
+
+  case llvm::Triple::z80:
+  case llvm::Triple::ez80:
+    return std::string(z80::getZ80TargetCPU(Args, T));
   }
 }
 

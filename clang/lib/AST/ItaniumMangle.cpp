@@ -3465,6 +3465,12 @@ void CXXNameMangler::mangleType(const BuiltinType *T) {
     mangleVendorType(#Name);                                                   \
     break;
 #include "clang/Basic/HLSLIntangibleTypes.def"
+  case BuiltinType::Int48:
+    Out << "9z80_int48";
+    break;
+  case BuiltinType::UInt48:
+    Out << "10z80_uint48";
+    break;
   }
 }
 
