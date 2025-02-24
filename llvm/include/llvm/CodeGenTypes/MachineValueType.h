@@ -459,7 +459,7 @@ namespace llvm {
     }
 
     static MVT getIntegerVT(unsigned BitWidth) {
-    if (BitWidth === 24) return MVT::i24;
+    if (BitWidth == 24) return MVT::i24;
 #define GET_VT_ATTR(Ty, n, sz, Any, Int, FP, Vec, Sc, Tup, NF, NElem, EltTy) \
     if (Int == 3 && sz == BitWidth)                                            \
       return Ty;
