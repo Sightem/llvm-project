@@ -136,6 +136,7 @@ RValue AMDGPUABIInfo::EmitVAArg(CodeGenFunction &CGF, Address VAListAddr,
   const bool AllowHigherAlign = false;
   return emitVoidPtrVAArg(CGF, VAListAddr, Ty, IsIndirect,
                           getContext().getTypeInfoInChars(Ty),
+                          CharUnits::fromQuantity(4),
                           CharUnits::fromQuantity(4), AllowHigherAlign, Slot);
 }
 

@@ -231,6 +231,7 @@ RValue NVPTXABIInfo::EmitVAArg(CodeGenFunction &CGF, Address VAListAddr,
   return emitVoidPtrVAArg(CGF, VAListAddr, Ty, /*IsIndirect=*/false,
                           getContext().getTypeInfoInChars(Ty),
                           CharUnits::fromQuantity(1),
+                          CharUnits::fromQuantity(1),
                           /*AllowHigherAlign=*/true, Slot);
 }
 

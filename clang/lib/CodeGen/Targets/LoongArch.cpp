@@ -435,7 +435,7 @@ RValue LoongArchABIInfo::EmitVAArg(CodeGenFunction &CGF, Address VAListAddr,
   // Arguments bigger than 2*GRLen bytes are passed indirectly.
   return emitVoidPtrVAArg(CGF, VAListAddr, Ty,
                           /*IsIndirect=*/TInfo.Width > 2 * SlotSize, TInfo,
-                          SlotSize,
+                          SlotSize, SlotSize,
                           /*AllowHigherAlign=*/true, Slot);
 }
 

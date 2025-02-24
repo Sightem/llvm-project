@@ -1086,6 +1086,7 @@ RValue X86_32ABIInfo::EmitVAArg(CodeGenFunction &CGF, Address VAListAddr,
 
   return emitVoidPtrVAArg(CGF, VAListAddr, Ty, /*Indirect*/ false, TypeInfo,
                           CharUnits::fromQuantity(4),
+                          CharUnits::fromQuantity(4),
                           /*AllowHigherAlign*/ true, Slot);
 }
 
@@ -3275,6 +3276,7 @@ RValue X86_64ABIInfo::EmitMSVAArg(CodeGenFunction &CGF, Address VAListAddr,
   return emitVoidPtrVAArg(CGF, VAListAddr, Ty, IsIndirect,
                           CGF.getContext().getTypeInfoInChars(Ty),
                           CharUnits::fromQuantity(8),
+                          CharUnits::fromQuantity(8),
                           /*allowHigherAlign*/ false, Slot);
 }
 
@@ -3488,6 +3490,7 @@ RValue WinX86_64ABIInfo::EmitVAArg(CodeGenFunction &CGF, Address VAListAddr,
 
   return emitVoidPtrVAArg(CGF, VAListAddr, Ty, IsIndirect,
                           CGF.getContext().getTypeInfoInChars(Ty),
+                          CharUnits::fromQuantity(8),
                           CharUnits::fromQuantity(8),
                           /*allowHigherAlign*/ false, Slot);
 }

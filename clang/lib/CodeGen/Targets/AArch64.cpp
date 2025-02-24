@@ -1114,7 +1114,7 @@ RValue AArch64ABIInfo::EmitDarwinVAArg(Address VAListAddr, QualType Ty,
   }
 
   return emitVoidPtrVAArg(CGF, VAListAddr, Ty, IsIndirect, TyInfo, SlotSize,
-                          /*AllowHigherAlign*/ true, Slot);
+                          SlotSize, /*AllowHigherAlign*/ true, Slot);
 }
 
 RValue AArch64ABIInfo::EmitMSVAArg(CodeGenFunction &CGF, Address VAListAddr,
@@ -1127,6 +1127,7 @@ RValue AArch64ABIInfo::EmitMSVAArg(CodeGenFunction &CGF, Address VAListAddr,
 
   return emitVoidPtrVAArg(CGF, VAListAddr, Ty, IsIndirect,
                           CGF.getContext().getTypeInfoInChars(Ty),
+                          CharUnits::fromQuantity(8),
                           CharUnits::fromQuantity(8),
                           /*allowHigherAlign*/ false, Slot);
 }

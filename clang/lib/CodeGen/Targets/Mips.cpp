@@ -393,7 +393,8 @@ RValue MipsABIInfo::EmitVAArg(CodeGenFunction &CGF, Address VAListAddr,
   CharUnits ArgSlotSize = CharUnits::fromQuantity(MinABIStackAlignInBytes);
 
   RValue Res = emitVoidPtrVAArg(CGF, VAListAddr, Ty, /*indirect*/ false, TyInfo,
-                                ArgSlotSize, /*AllowHigherAlign*/ true, Slot);
+                                ArgSlotSize, ArgSlotSize,
+                                /*AllowHigherAlign*/ true, Slot);
 
   // If there was a promotion, "unpromote".
   // TODO: can we just use a pointer into a subset of the original slot?

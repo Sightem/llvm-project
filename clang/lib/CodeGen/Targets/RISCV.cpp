@@ -566,7 +566,7 @@ RValue RISCVABIInfo::EmitVAArg(CodeGenFunction &CGF, Address VAListAddr,
   bool IsIndirect = TInfo.Width > 2 * SlotSize;
 
   return emitVoidPtrVAArg(CGF, VAListAddr, Ty, IsIndirect, TInfo, SlotSize,
-                          /*AllowHigherAlign=*/true, Slot);
+                          SlotSize, /*AllowHigherAlign=*/true, Slot);
 }
 
 ABIArgInfo RISCVABIInfo::extendType(QualType Ty, llvm::Type *CoerceTy) const {

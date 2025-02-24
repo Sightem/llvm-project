@@ -88,6 +88,7 @@ RValue ARCABIInfo::EmitVAArg(CodeGenFunction &CGF, Address VAListAddr,
                              QualType Ty, AggValueSlot Slot) const {
   return emitVoidPtrVAArg(CGF, VAListAddr, Ty, /*indirect*/ false,
                           getContext().getTypeInfoInChars(Ty),
+                          CharUnits::fromQuantity(4),
                           CharUnits::fromQuantity(4), true, Slot);
 }
 

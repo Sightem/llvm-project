@@ -18,7 +18,8 @@ static RValue complexTempStructure(CodeGenFunction &CGF, Address VAListAddr,
                                    CharUnits EltSize, const ComplexType *CTy) {
   Address Addr =
       emitVoidPtrDirectVAArg(CGF, VAListAddr, CGF.Int8Ty, SlotSize * 2,
-                             SlotSize, SlotSize, /*AllowHigher*/ true);
+                             SlotSize, SlotSize, SlotSize,
+                             /*AllowHigher*/ true);
 
   Address RealAddr = Addr;
   Address ImagAddr = RealAddr;
@@ -262,7 +263,7 @@ RValue AIXABIInfo::EmitVAArg(CodeGenFunction &CGF, Address VAListAddr,
   }
 
   return emitVoidPtrVAArg(CGF, VAListAddr, Ty, /*Indirect*/ false, TypeInfo,
-                          SlotSize, /*AllowHigher*/ true, Slot);
+                          SlotSize, SlotSize, /*AllowHigher*/ true, Slot);
 }
 
 bool AIXTargetCodeGenInfo::initDwarfEHRegSizeTable(
@@ -436,7 +437,7 @@ RValue PPC32_SVR4_ABIInfo::EmitVAArg(CodeGenFunction &CGF, Address VAList,
     CharUnits SlotSize = CharUnits::fromQuantity(4);
     return emitVoidPtrVAArg(CGF, VAList, Ty,
                             classifyArgumentType(Ty).isIndirect(), TI, SlotSize,
-                            /*AllowHigherAlign=*/true, Slot);
+                            SlotSize, /*AllowHigherAlign=*/true, Slot);
   }
 
   const unsigned OverflowLimit = 8;
@@ -999,7 +1000,7 @@ RValue PPC64_SVR4_ABIInfo::EmitVAArg(CodeGenFunction &CGF, Address VAListAddr,
   // types this way, and so right-alignment only applies to fundamental types.
   // So on PPC64, we must force the use of right-alignment even for aggregates.
   return emitVoidPtrVAArg(CGF, VAListAddr, Ty, /*Indirect*/ false, TypeInfo,
-                          SlotSize, /*AllowHigher*/ true, Slot,
+                          SlotSize, SlotSize, /*AllowHigher*/ true, Slot,
                           /*ForceRightAdjust*/ true);
 }
 

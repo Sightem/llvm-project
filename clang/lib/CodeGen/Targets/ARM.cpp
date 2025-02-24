@@ -835,7 +835,7 @@ RValue ARMABIInfo::EmitVAArg(CodeGenFunction &CGF, Address VAListAddr,
 
   TypeInfoChars TyInfo(TySize, TyAlignForABI, AlignRequirementKind::None);
   return emitVoidPtrVAArg(CGF, VAListAddr, Ty, IsIndirect, TyInfo, SlotSize,
-                          /*AllowHigherAlign*/ true, Slot);
+                          SlotSize, /*AllowHigherAlign*/ true, Slot);
 }
 
 std::unique_ptr<TargetCodeGenInfo>

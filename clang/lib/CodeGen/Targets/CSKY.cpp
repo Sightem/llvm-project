@@ -68,7 +68,7 @@ RValue CSKYABIInfo::EmitVAArg(CodeGenFunction &CGF, Address VAListAddr,
   auto TInfo = getContext().getTypeInfoInChars(Ty);
 
   return emitVoidPtrVAArg(CGF, VAListAddr, Ty, false, TInfo, SlotSize,
-                          /*AllowHigherAlign=*/true, Slot);
+                          SlotSize, /*AllowHigherAlign=*/true, Slot);
 }
 
 ABIArgInfo CSKYABIInfo::classifyArgumentType(QualType Ty, int &ArgGPRsLeft,

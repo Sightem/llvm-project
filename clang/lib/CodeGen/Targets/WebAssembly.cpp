@@ -164,6 +164,7 @@ RValue WebAssemblyABIInfo::EmitVAArg(CodeGenFunction &CGF, Address VAListAddr,
   return emitVoidPtrVAArg(CGF, VAListAddr, Ty, IsIndirect,
                           getContext().getTypeInfoInChars(Ty),
                           CharUnits::fromQuantity(4),
+                          CharUnits::fromQuantity(4),
                           /*AllowHigherAlign=*/true, Slot);
 }
 
