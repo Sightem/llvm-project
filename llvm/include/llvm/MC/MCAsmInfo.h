@@ -692,7 +692,6 @@ public:
   bool hasFunctionAlignment() const { return HasFunctionAlignment; }
   bool hasDotTypeDotSizeDirective() const { return HasDotTypeDotSizeDirective; }
   bool hasSingleParameterDotFile() const { return HasSingleParameterDotFile; }
-  bool hasIdentDirective() const { return HasIdentDirective; }
   const char *getIdentDirective() const { return IdentDirective; }
   bool hasNoDeadStrip() const { return HasNoDeadStrip; }
   const char *getWeakDirective() const { return WeakDirective; }
