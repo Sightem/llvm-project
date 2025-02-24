@@ -24,7 +24,6 @@
 #include "llvm/MC/MCInstrDesc.h"
 #include "llvm/Support/AtomicOrdering.h"
 #include "llvm/Support/CommandLine.h"
-#include "llvm/Support/LowLevelTypeImpl.h"
 #include "llvm/Support/raw_ostream.h"
 #include <cassert>
 #include <cstdint>
@@ -1067,17 +1066,6 @@ public:
         changeTo(typeIdx(TypeIdx), Ty));
   }
 
-  /// Conditionally limit the minimum size of the scalar.
-  LegalizeRuleSet &minScalarIf(LegalityPredicate Predicate, unsigned TypeIdx,
-                               const LLT Ty) {
-    using namespace LegalityPredicates;
-    using namespace LegalizeMutations;
-    return actionIf(
-        LegalizeAction::WidenScalar,
-	all(scalarNarrowerThan(TypeIdx, Ty.getSizeInBits()), Predicate),
-        changeTo(typeIdx(TypeIdx), Ty));
-  }
-
   /// Ensure the scalar is at most as wide as Ty.
   LegalizeRuleSet &maxScalarOrElt(unsigned TypeIdx, const LLT Ty) {
     using namespace LegalityPredicates;
@@ -1393,8 +1381,9 @@ public:
   virtual LegalizerHelper::LegalizeResult
   legalizeCustomMaybeLegal(LegalizerHelper &Helper, MachineInstr &MI,
                            LostDebugLocObserver &LocObserver) const {
-    return legalizeCustom(Helper, MI) ? LegalizerHelper::Legalized
-                                      : LegalizerHelper::UnableToLegalize;
+    return legalizeCustom(Helper, MI, LocObserver)
+            ? LegalizerHelper::Legalized
+            : LegalizerHelper::UnableToLegalize;
   }
 
   /// \returns true if MI is either legal or has been legalized and false if not
