@@ -598,6 +598,7 @@ bool llvm::extractParts(Register Reg, LLT RegTy, LLT MainTy, LLT &LeftoverTy,
     MIRBuilder.buildExtract(NewReg, Reg, MainSize * I);
   }
 
+  // todo adriweb jacobly: port change from d5208baa
   for (unsigned Offset = MainSize * NumParts; Offset < RegSize;
        Offset += LeftoverSize) {
     Register NewReg = MRI.createGenericVirtualRegister(LeftoverTy);

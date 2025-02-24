@@ -50,7 +50,8 @@ Address Z80ABIInfo::EmitVAArg(CodeGenFunction &CGF,
   Address Addr = emitVoidPtrVAArg(
       CGF, VAListAddr, Ty, /*Indirect*/ false,
       getContext().getTypeInfoInChars(Ty),
-      CharUnits::fromQuantity(getDataLayout().getPointerSize()),
+      /*SlotSize*/ CharUnits::fromQuantity(getDataLayout().getPointerSize()),
+      /*SlotAlign*/ CharUnits::One(),
       /*AllowHigherAlign*/ false);
   // Remove SlotSize over-alignment, since stack is never aligned.
   return Address(Addr.getPointer(), CharUnits::fromQuantity(1));
