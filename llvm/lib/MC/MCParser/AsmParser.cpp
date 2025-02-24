@@ -508,7 +508,6 @@ private:
     DK_CFI_DEF_CFA_REGISTER,
     DK_CFI_LLVM_DEF_ASPACE_CFA,
     DK_CFI_OFFSET,
-    DK_CFI_VAL_OFFSET,
     DK_CFI_REL_OFFSET,
     DK_CFI_PERSONALITY,
     DK_CFI_LSDA,
@@ -617,7 +616,6 @@ private:
   bool parseDirectiveCFIDefCfaRegister(SMLoc DirectiveLoc);
   bool parseDirectiveCFILLVMDefAspaceCfa(SMLoc DirectiveLoc);
   bool parseDirectiveCFIOffset(SMLoc DirectiveLoc);
-  bool parseDirectiveCFIValOffset(SMLoc DirectiveLoc);
   bool parseDirectiveCFIRelOffset(SMLoc DirectiveLoc);
   bool parseDirectiveCFIPersonalityOrLsda(bool IsPersonality);
   bool parseDirectiveCFIRememberState(SMLoc DirectiveLoc);
@@ -2202,8 +2200,6 @@ bool AsmParser::parseStatement(ParseStatementInfo &Info,
       return parseDirectiveCFILLVMDefAspaceCfa(IDLoc);
     case DK_CFI_OFFSET:
       return parseDirectiveCFIOffset(IDLoc);
-    case DK_CFI_VAL_OFFSET:
-      return parseDirectiveCFIValOffset(IDLoc);
     case DK_CFI_REL_OFFSET:
       return parseDirectiveCFIRelOffset(IDLoc);
     case DK_CFI_PERSONALITY:
@@ -4371,21 +4367,6 @@ bool AsmParser::parseDirectiveCFIOffset(SMLoc DirectiveLoc) {
     return true;
 
   getStreamer().emitCFIOffset(Register, Offset, DirectiveLoc);
-  return false;
-}
-
-/// parseDirectiveCFIValOffset
-/// ::= .cfi_val_offset register, offset
-bool AsmParser::parseDirectiveCFIValOffset(SMLoc DirectiveLoc) {
-  int64_t Register = 0;
-  int64_t Offset = 0;
-
-  if (parseRegisterOrRegisterNumber(Register, DirectiveLoc) ||
-      parseToken(AsmToken::Comma, "unexpected token in directive") ||
-      parseAbsoluteExpression(Offset))
-    return true;
-
-  getStreamer().emitCFIValOffset(Register, Offset);
   return false;
 }
 

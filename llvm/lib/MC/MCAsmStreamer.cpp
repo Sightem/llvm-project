@@ -361,7 +361,6 @@ public:
   void emitCFILLVMDefAspaceCfa(int64_t Register, int64_t Offset,
                                int64_t AddressSpace, SMLoc Loc) override;
   void emitCFIOffset(int64_t Register, int64_t Offset, SMLoc Loc) override;
-  void emitCFIValOffset(int64_t Register, int64_t Offset) override;
   void emitCFIPersonality(const MCSymbol *Sym, unsigned Encoding) override;
   void emitCFILsda(const MCSymbol *Sym, unsigned Encoding) override;
   void emitCFIRememberState(SMLoc Loc) override;
@@ -2118,14 +2117,6 @@ void MCAsmStreamer::emitCFIDefCfaRegister(int64_t Register, SMLoc Loc) {
 void MCAsmStreamer::emitCFIOffset(int64_t Register, int64_t Offset, SMLoc Loc) {
   MCStreamer::emitCFIOffset(Register, Offset, Loc);
   OS << MAI->getDwarfCFIDirectivePrefix() << "offset ";
-  EmitRegisterName(Register);
-  OS << ", " << Offset;
-  EmitEOL();
-}
-
-void MCAsmStreamer::emitCFIValOffset(int64_t Register, int64_t Offset) {
-  this->MCStreamer::emitCFIValOffset(Register, Offset);
-  OS << MAI->getDwarfCFIDirectivePrefix() << "val_offset ";
   EmitRegisterName(Register);
   OS << ", " << Offset;
   EmitEOL();
