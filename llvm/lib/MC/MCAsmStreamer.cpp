@@ -1329,7 +1329,8 @@ void MCAsmStreamer::emitBytes(StringRef Data) {
         PrintQuotedString(Data, OS);
       } else {
         OS << "\t.byte\t";
-        PrintByteList(Data, OS, MAI->characterLiteralSyntax());
+        PrintByteList(Data, OS, MAI->numberLiteralSyntax(),
+          MAI->characterLiteralSyntax());
       }
       EmitEOL();
       return true;

@@ -300,12 +300,11 @@ MCSymbol *MCContext::createRenamableSymbol(const Twine &Name,
   while (AlwaysAddSuffix || EntryPtr->second.Used) {
     AlwaysAddSuffix = false;
 
-  // Determine whether this is a user written assembler temporary or normal
-  // label, if used.
-  bool IsTemporary = CanBeUnnamed;
-  auto Prefix = MAI->getPrivateGlobalPrefix();
-  if (AllowTemporaryLabels && !IsTemporary)
-    IsTemporary = !Prefix.empty() && Name.startswith(Prefix);
+    // Determine whether this is a user written assembler temporary or normal
+    // label, if used.
+    auto Prefix = MAI->getPrivateGlobalPrefix();
+    if (SaveTempLabels && !IsTemporary)
+      IsTemporary = !Prefix.empty() && Name.getSingleStringRef().starts_with(Prefix);
 
     NewName.resize(NameLen);
     raw_svector_ostream(NewName) << NameEntry.second.NextUniqueID++;

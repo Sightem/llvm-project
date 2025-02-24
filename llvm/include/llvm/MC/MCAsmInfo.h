@@ -338,6 +338,9 @@ protected:
   /// argument and how it is interpreted.  Defaults to NoAlignment.
   LCOMM::LCOMMType LCOMMDirectiveAlignmentType = LCOMM::NoAlignment;
 
+  // for Z80
+  bool HasPairedDoubleQuoteStringConstants = false;
+
   /// In string constants, `\"` is represented as `"\\\""`.
   bool HasBackslashEscapesInStringConstants = true;
 
@@ -815,6 +818,8 @@ public:
 
   virtual const char *getUnaryOperator(unsigned Opc) const;
   virtual const char *getBinaryOperator(unsigned Opc) const;
+
+  bool hasPairedDoubleQuoteStringConstants() const { return HasPairedDoubleQuoteStringConstants; }
 };
 
 } // end namespace llvm
