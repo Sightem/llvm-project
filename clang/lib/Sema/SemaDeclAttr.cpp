@@ -5884,20 +5884,20 @@ BTFDeclTagAttr *Sema::mergeBTFDeclTagAttr(Decl *D, const BTFDeclTagAttr &AL) {
 }
 
 static void handleZ80InterruptAttr(Sema &S, Decl *D, const ParsedAttr &AL) {
-  if (!isFunctionOrMethod(D)) {
+  if (!isFuncOrMethodForAttrSubject(D)) {
     S.Diag(D->getLocation(), diag::warn_attribute_wrong_decl_type)
         << "'interrupt'" << ExpectedFunction;
     return;
   }
 
   if (hasFunctionProto(D) && getFunctionOrMethodNumParams(D) != 0) {
-    S.Diag(D->getLocation(), diag::warn_interrupt_attribute_invalid)
+    S.Diag(D->getLocation(), diag::warn_interrupt_signal_attribute_invalid)
         << /*Z80*/ 3 << 0;
     return;
   }
 
   if (!getFunctionOrMethodResultType(D)->isVoidType()) {
-    S.Diag(D->getLocation(), diag::warn_interrupt_attribute_invalid)
+    S.Diag(D->getLocation(), diag::warn_interrupt_signal_attribute_invalid)
         << /*Z80*/ 3 << 1;
     return;
   }
