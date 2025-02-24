@@ -1057,12 +1057,8 @@ void MatcherGen::EmitResultCode() {
         HandledReg = II.ImplicitDefs[0];
     }
 
-    for (constRecord *Reg : Pattern.getDstRegs()) {
-      if (!Reg->isSubClassOf("Register")) continue;
-      // If the root came from an implicit def in the instruction handling stuff,
-      // don't re-add it.
-      if (II && II->HasImplicitDef(Reg) &&
-          CGT.getRegisterKnownVT(Reg) != MVT::Other)
+    for (const Record *Reg : Pattern.getDstRegs()) {
+      if (!Reg->isSubClassOf("Register") || Reg == HandledReg)
         continue;
       ++NumSrcResults;
     }
