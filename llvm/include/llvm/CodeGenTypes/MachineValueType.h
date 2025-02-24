@@ -237,6 +237,12 @@ namespace llvm {
       return MVT::getVectorVT(EltVT, EltCnt * 2);
     }
 
+    /// Return true if the width is a power of 2.
+    bool isPow2Size() {
+      unsigned BitWidth = getSizeInBits();
+      return !(BitWidth & (BitWidth - 1));
+    }
+
     /// Returns true if the given vector is a power of 2.
     bool isPow2VectorType() const {
       unsigned NElts = getVectorMinNumElements();
@@ -306,6 +312,7 @@ namespace llvm {
     /// be set and the runtime size will be a positive integer multiple of the
     /// base size.
     TypeSize getSizeInBits() const {
+      if (SimpleTy == i24) return TypeSize::Fixed(24);
       static constexpr TypeSize SizeTable[] = {
 #define GET_VT_ATTR(Ty, N, Sz, Any, Int, FP, Vec, Sc, Tup, NF, NElem, EltTy) \
     TypeSize(Sz, Sc || Tup || Ty == aarch64svcount /* FIXME: Not in the td.    \
@@ -379,6 +386,18 @@ namespace llvm {
     /// 8-bit byte.
     bool isByteSized() const { return getSizeInBits().isKnownMultipleOf(8); }
 
+    /// getNumParts - Return the number of parts with PartBits bits that make up
+    /// this VT.
+    unsigned getNumParts(unsigned PartBits) const {
+      return divideCeil(getSizeInBits(), PartBits);
+    }
+
+    /// getNumParts - Return the number of parts of type PartVT that make up
+    /// this VT.
+    unsigned getNumParts(MVT PartVT) const {
+      return getNumParts(PartVT.getSizeInBits());
+    }
+
     /// Return true if we know at compile time this has more bits than VT.
     bool knownBitsGT(MVT VT) const {
       return TypeSize::isKnownGT(getSizeInBits(), VT.getSizeInBits());
@@ -440,6 +459,7 @@ namespace llvm {
     }
 
     static MVT getIntegerVT(unsigned BitWidth) {
+    if (BitWidth === 24) return MVT::i24;
 #define GET_VT_ATTR(Ty, n, sz, Any, Int, FP, Vec, Sc, Tup, NF, NElem, EltTy) \
     if (Int == 3 && sz == BitWidth)                                            \
       return Ty;
