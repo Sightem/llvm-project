@@ -18,23 +18,34 @@
 namespace clang {
 namespace targets {
 
-const Builtin::Info BuiltinInfoZ80[] = {
-#define BUILTIN(ID, TYPE, ATTRS)                                               \
-  {#ID, TYPE, ATTRS, nullptr, ALL_LANGUAGES, nullptr},
-#define TARGET_BUILTIN(ID, TYPE, ATTRS, FEATURE)                               \
-  {#ID, TYPE, ATTRS, nullptr, ALL_LANGUAGES, FEATURE},
-#define TARGET_HEADER_BUILTIN(ID, TYPE, ATTRS, HEADER, LANGS, FEATURE)         \
-  {#ID, TYPE, ATTRS, HEADER, LANGS, FEATURE},
-#include "clang/Basic/BuiltinsZ80.def"
+static constexpr int NumBuiltinsZ80 =
+    Z80::LastZ80CommonBuiltin + 1 - Builtin::FirstTSBuiltin;
+static constexpr int NumBuiltinsEZ80 =
+    Z80::LastTSBuiltin - Z80::FirstEZ80Builtin;
 
-#define BUILTIN(ID, TYPE, ATTRS)                                               \
-  {#ID, TYPE, ATTRS, nullptr, ALL_LANGUAGES, nullptr},
-#define TARGET_BUILTIN(ID, TYPE, ATTRS, FEATURE)                               \
-  {#ID, TYPE, ATTRS, nullptr, ALL_LANGUAGES, FEATURE},
-#define TARGET_HEADER_BUILTIN(ID, TYPE, ATTRS, HEADER, LANGS, FEATURE)         \
-  {#ID, TYPE, ATTRS, HEADER, LANGS, FEATURE},
+static constexpr llvm::StringTable BuiltinStringsZ80 =
+    CLANG_BUILTIN_STR_TABLE_START
+#define BUILTIN CLANG_BUILTIN_STR_TABLE
+#include "clang/Basic/BuiltinsZ80.def"
+    ;
+
+static constexpr llvm::StringTable BuiltinStringsEZ80 =
+    CLANG_BUILTIN_STR_TABLE_START
+#define BUILTIN CLANG_BUILTIN_STR_TABLE
 #include "clang/Basic/BuiltinsEZ80.def"
-};
+    ;
+
+static constexpr auto BuiltinInfoZ80 = Builtin::MakeInfos<NumBuiltinsZ80>({
+#define BUILTIN CLANG_BUILTIN_ENTRY
+#define LIBBUILTIN CLANG_LIBBUILTIN_ENTRY
+#include "clang/Basic/BuiltinsZ80.def"
+});
+
+static constexpr auto BuiltinInfoEZ80 = Builtin::MakeInfos<NumBuiltinsEZ80>({
+#define BUILTIN CLANG_BUILTIN_ENTRY
+#define LIBBUILTIN CLANG_LIBBUILTIN_ENTRY
+#include "clang/Basic/BuiltinsEZ80.def"
+});
 
 static const char *const Z80GCCRegNames[] = {
     "a", "bc", "de", "hl", "ix", "iy", "sp",
@@ -203,7 +214,7 @@ Z80TargetInfoBase::convertConstraint(const char *&Constraint) const {
 }
 
 ArrayRef<TargetInfo::AddlRegName> Z80TargetInfoBase::getGCCAddlRegNames() const {
-  return llvm::makeArrayRef(AddlRegNames);
+  return ArrayRef(AddlRegNames);
 }
 
 bool Z80TargetInfo::setCPU(const std::string &Name) {
@@ -239,13 +250,13 @@ void Z80TargetInfo::getTargetDefines(const LangOptions &Opts,
   }
 }
 
-ArrayRef<Builtin::Info> Z80TargetInfo::getTargetBuiltins() const {
-  return llvm::makeArrayRef(BuiltinInfoZ80, Z80::LastZ80CommonBuiltin -
-                                                Builtin::FirstTSBuiltin + 1);
+llvm::SmallVector<Builtin::InfosShard>
+Z80TargetInfo::getTargetBuiltins() const {
+  return {{&BuiltinStringsZ80, BuiltinInfoZ80}};
 }
 
 ArrayRef<const char *> Z80TargetInfo::getGCCRegNames() const {
-  return llvm::makeArrayRef(Z80GCCRegNames);
+  return llvm::ArrayRef(Z80GCCRegNames);
 }
 
 bool EZ80TargetInfo::setCPU(const std::string &Name) {
@@ -262,11 +273,11 @@ void EZ80TargetInfo::getTargetDefines(const LangOptions &Opts,
   Builder.defineMacro("_EZ80");
 }
 
-ArrayRef<Builtin::Info> EZ80TargetInfo::getTargetBuiltins() const {
-  return llvm::makeArrayRef(BuiltinInfoZ80,
-                            Z80::LastTSBuiltin - Builtin::FirstTSBuiltin);
+llvm::SmallVector<Builtin::InfosShard>
+EZ80TargetInfo::getTargetBuiltins() const {
+  return {{&BuiltinStringsEZ80, BuiltinInfoEZ80}};
 }
 
 ArrayRef<const char *> EZ80TargetInfo::getGCCRegNames() const {
-  return llvm::makeArrayRef(EZ80GCCRegNames);
+  return llvm::ArrayRef(EZ80GCCRegNames);
 }

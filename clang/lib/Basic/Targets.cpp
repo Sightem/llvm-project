@@ -761,12 +761,11 @@ std::unique_ptr<TargetInfo> AllocateTarget(const llvm::Triple &Triple,
 
   case llvm::Triple::xtensa:
     return std::make_unique<XtensaTargetInfo>(Triple, Opts);
-    return new LinuxTargetInfo<VETargetInfo>(Triple, Opts);
 
   case llvm::Triple::z80:
-    return new Z80TargetInfo(Triple, Opts);
+    return std::make_unique<Z80TargetInfo>(Triple, Opts);
   case llvm::Triple::ez80:
-    return new EZ80TargetInfo(Triple, Opts);
+    return std::make_unique<EZ80TargetInfo>(Triple, Opts);
   }
 }
 } // namespace targets

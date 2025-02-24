@@ -720,6 +720,12 @@ std::string tools::getCPUName(const Driver &D, const ArgList &Args,
     if (const Arg *A = Args.getLastArg(options::OPT_mcpu_EQ))
       return A->getValue();
     return "";
+
+  case llvm::Triple::z80:
+  case llvm::Triple::ez80:
+    return z80::getZ80TargetCPU(Args, T);
+
+    return "";
   }
 }
 
@@ -808,15 +814,15 @@ void tools::getTargetFeatures(const Driver &D, const llvm::Triple &Triple,
   case llvm::Triple::loongarch64:
     loongarch::getLoongArchTargetFeatures(D, Triple, Args, Features);
     break;
+  case llvm::Triple::z80:
+  case llvm::Triple::ez80:
+    z80::getZ80TargetFeatures(D, Triple, Args, Features);
+    break;
   }
 
   for (auto Feature : unifyTargetFeatures(Features)) {
     CmdArgs.push_back(IsAux ? "-aux-target-feature" : "-target-feature");
     CmdArgs.push_back(Feature.data());
-
-  case llvm::Triple::z80:
-  case llvm::Triple::ez80:
-    return std::string(z80::getZ80TargetCPU(Args, T));
   }
 }
 

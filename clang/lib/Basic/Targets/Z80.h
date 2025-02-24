@@ -51,9 +51,9 @@ public:
                              TargetInfo::ConstraintInfo &Info) const override;
   std::string convertConstraint(const char *&Constraint) const override;
 
-  const char *getClobbers() const override { return ""; }
+  std::string_view getClobbers() const override { return ""; }
   ArrayRef<TargetInfo::GCCRegAlias> getGCCRegAliases() const override {
-    return None;
+    return {};
   }
   ArrayRef<TargetInfo::AddlRegName> getGCCAddlRegNames() const override;
 
@@ -77,7 +77,7 @@ private:
                  const std::vector<std::string> &FeaturesVec) const override;
   void getTargetDefines(const LangOptions &Opts,
                         MacroBuilder &Builder) const override;
-  ArrayRef<Builtin::Info> getTargetBuiltins() const override;
+  llvm::SmallVector<Builtin::InfosShard> getTargetBuiltins() const override;
   ArrayRef<const char *> getGCCRegNames() const override;
 };
 
@@ -100,7 +100,7 @@ private:
   bool setCPU(const std::string &Name) override;
   void getTargetDefines(const LangOptions &Opts,
                         MacroBuilder &Builder) const override;
-  ArrayRef<Builtin::Info> getTargetBuiltins() const override;
+  llvm::SmallVector<Builtin::InfosShard> getTargetBuiltins() const override;
   ArrayRef<const char *> getGCCRegNames() const override;
 };
 
