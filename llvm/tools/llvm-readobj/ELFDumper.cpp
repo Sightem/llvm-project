@@ -3663,7 +3663,7 @@ template <class ELFT> void GNUELFDumper<ELFT>::printFileHeaders() {
     ElfFlags = printFlags(e.e_flags, ArrayRef(ElfHeaderAVRFlags),
                           unsigned(ELF::EF_AVR_ARCH_MASK));
   else if (e.e_machine == EM_Z80)
-    ElfFlags = printFlags(e.e_flags, makeArrayRef(ElfHeaderZ80Flags));
+    ElfFlags = printFlags(e.e_flags, ArrayRef(ElfHeaderZ80Flags));
   else if (e.e_machine == EM_LOONGARCH)
     ElfFlags = printFlags(e.e_flags, ArrayRef(ElfHeaderLoongArchFlags),
                           unsigned(ELF::EF_LOONGARCH_ABI_MODIFIER_MASK),
@@ -7214,7 +7214,7 @@ template <class ELFT> void LLVMELFDumper<ELFT>::printFileHeaders() {
       W.printFlags("Flags", E.e_flags, ArrayRef(ElfHeaderNVPTXFlags),
                    unsigned(ELF::EF_CUDA_SM));
     else if (E.e_machine == EM_Z80)
-      W.printFlags("Flags", E.e_flags, makeArrayRef(ElfHeaderZ80Flags));
+      W.printFlags("Flags", E.e_flags, ArrayRef(ElfHeaderZ80Flags));
     else
       W.printFlags("Flags", E.e_flags);
     W.printNumber("HeaderSize", E.e_ehsize);

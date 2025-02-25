@@ -17096,7 +17096,7 @@ const char* cases[][2] = {
     {"_ZN4llvm12MachineInstr10getRegInfoEv", "llvm::MachineInstr::getRegInfo()"},
     {"_ZN4llvm12MachineInstr29RemoveRegOperandsFromUseListsEv", "llvm::MachineInstr::RemoveRegOperandsFromUseLists()"},
     {"_ZN4llvm12MachineInstr24AddRegOperandsToUseListsERNS_19MachineRegisterInfoE", "llvm::MachineInstr::AddRegOperandsToUseLists(llvm::MachineRegisterInfo&)"},
-    {"_ZN4llvm12MachineInstr13RemoveOperandEj", "llvm::MachineInstr::RemoveOperand(unsigned int)"},
+    {"_ZN4llvm12MachineInstr13RemoveOperandEj", "llvm::MachineInstr::removeOperand(unsigned int)"},
     {"_ZN4llvm12MachineInstr13addMemOperandERNS_15MachineFunctionEPNS_17MachineMemOperandE", "llvm::MachineInstr::addMemOperand(llvm::MachineFunction&, llvm::MachineMemOperand*)"},
     {"_ZNK4llvm12MachineInstr13isIdenticalToEPKS0_NS0_11MICheckTypeE", "llvm::MachineInstr::isIdenticalTo(llvm::MachineInstr const*, llvm::MachineInstr::MICheckType) const"},
     {"_ZN4llvm12MachineInstr16removeFromParentEv", "llvm::MachineInstr::removeFromParent()"},
