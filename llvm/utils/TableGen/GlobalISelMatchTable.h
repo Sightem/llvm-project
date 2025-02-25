@@ -508,7 +508,7 @@ protected:
 
   /// A map of anonymous physical register operands defined by the matchers that
   /// may be referenced by the renderers.
-  DenseMap<Record *, OperandMatcher *> PhysRegOperands;
+  DenseMap<Record *, OperandMatcher *> PhysRegDefs, PhysRegUses;
 
   /// ID for the next instruction variable defined with
   /// implicitlyDefineInsnVar()
@@ -654,9 +654,11 @@ public:
     return make_range(actions_begin(), actions_end());
   }
 
+  bool hasOperand(StringRef SymbolicName);
+
   void defineOperand(StringRef SymbolicName, OperandMatcher &OM);
 
-  void definePhysRegOperand(Record *Reg, OperandMatcher &OM);
+  void definePhysRegOperand(Record *Reg, OperandMatcher &OM, bool IsDef = false);
 
   Error defineComplexSubOperand(StringRef SymbolicName, Record *ComplexPattern,
                                 unsigned RendererID, unsigned SubOperandID,
@@ -673,7 +675,8 @@ public:
   InstructionMatcher &getInstructionMatcher(StringRef SymbolicName) const;
   OperandMatcher &getOperandMatcher(StringRef Name);
   const OperandMatcher &getOperandMatcher(StringRef Name) const;
-  const OperandMatcher &getPhysRegOperandMatcher(Record *) const;
+  const OperandMatcher &getPhysRegOperandMatcher(Record *Reg,
+                                                 bool IsDef = false) const;
 
   void optimize() override;
   void emit(MatchTable &Table) override;
@@ -1913,10 +1916,12 @@ class CopyPhysRegRenderer : public OperandRenderer {
 protected:
   unsigned NewInsnID;
   Record *PhysReg;
+  bool IsDef;
 
 public:
-  CopyPhysRegRenderer(unsigned NewInsnID, Record *Reg)
-      : OperandRenderer(OR_CopyPhysReg), NewInsnID(NewInsnID), PhysReg(Reg) {
+  CopyPhysRegRenderer(unsigned NewInsnID, Record *Reg, bool IsDef = false)
+      : OperandRenderer(OR_CopyPhysReg), NewInsnID(NewInsnID),
+        PhysReg(Reg), IsDef(IsDef) {
     assert(PhysReg);
   }
 
@@ -2208,6 +2213,7 @@ public:
     AK_CustomCXX,
     AK_BuildMI,
     AK_BuildConstantMI,
+    AK_EraseFromParent,
     AK_EraseInst,
     AK_ReplaceReg,
     AK_ConstraintOpsToDef,
@@ -2263,6 +2269,21 @@ public:
   }
 
   void emitActionOpcodes(MatchTable &Table, RuleMatcher &Rule) const override;
+};
+
+/// Generates code to erase an instruction.
+class EraseFromParentAction : public MatchAction {
+  unsigned InsnID;
+
+public:
+  EraseFromParentAction(unsigned InsnID) : MatchAction(AK_EraseFromParent),
+                                           InsnID(InsnID) {}
+
+  void emitActionOpcodes(MatchTable &Table, RuleMatcher &Rule) const override {
+    Table << MatchTable::Opcode("GIR_EraseFromParent")
+          << MatchTable::Comment("InsnID") << MatchTable::IntValue(InsnID)
+          << MatchTable::LineBreak;
+  }
 };
 
 /// Generates code to build an instruction or mutate an existing instruction
