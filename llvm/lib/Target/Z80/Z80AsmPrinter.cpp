@@ -102,7 +102,7 @@ void Z80AsmPrinter::emitGlobalVariable(const GlobalVariable *GV) {
   OutStreamer->AddBlankLine();
 }
 
-void Z80AsmPrinter::emitGlobalAlias(Module &M, const GlobalAlias &GA) {
+void Z80AsmPrinter::emitGlobalAlias(const Module &M, const GlobalAlias &GA) {
   SwitchSectionForGlobal(GA.getAliaseeObject());
   AsmPrinter::emitGlobalAlias(M, GA);
   OutStreamer->AddBlankLine();
