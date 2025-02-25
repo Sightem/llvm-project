@@ -21,9 +21,11 @@
 #include "llvm/CodeGen/GlobalISel/Utils.h"
 #include "llvm/CodeGen/LowLevelTypeUtils.h"
 #include "llvm/CodeGen/MachineBasicBlock.h"
+#include "llvm/CodeGen/MachineDomTreeUpdater.h"
 #include "llvm/CodeGen/MachineDominators.h"
 #include "llvm/CodeGen/MachineInstr.h"
 #include "llvm/CodeGen/MachineMemOperand.h"
+#include "llvm/CodeGen/MachinePostDominators.h"
 #include "llvm/CodeGen/MachineRegisterInfo.h"
 #include "llvm/CodeGen/RegisterBankInfo.h"
 #include "llvm/CodeGen/TargetInstrInfo.h"
@@ -1131,7 +1133,7 @@ bool CombinerHelper::dominates(MachineBasicBlock &DefMBB,
 
 bool CombinerHelper::canMove(MachineInstr &MI, MachineBasicBlock &MBB,
                              bool &SawStore) {
-  if (MI.isConvergent() || !MI.isSafeToMove(nullptr, SawStore))
+  if (MI.isConvergent() || !MI.isSafeToMove(SawStore))
     return false;
   for (auto &MO : MI.operands()) {
     if (!MO.isReg())
@@ -6414,7 +6416,7 @@ bool CombinerHelper::applyPtrAddGlobalImmed(
   Observer.changingInstr(MI);
   MI.setDesc(Builder.getTII().get(TargetOpcode::G_GLOBAL_VALUE));
   MI.getOperand(1).ChangeToGA(MatchInfo.first, MatchInfo.second);
-  MI.RemoveOperand(2);
+  MI.removeOperand(2);
   Observer.changedInstr(MI);
   return true;
 }
@@ -6458,7 +6460,7 @@ bool CombinerHelper::applyPtrAddConstImmed(MachineInstr &MI,
   Observer.changingInstr(MI);
   MI.setDesc(Builder.getTII().get(TargetOpcode::G_INTTOPTR));
   MI.getOperand(1).setReg(NewConst.getReg(0));
-  MI.RemoveOperand(2);
+  MI.removeOperand(2);
   Observer.changedInstr(MI);
   return true;
 }
@@ -6611,7 +6613,7 @@ bool CombinerHelper::matchCombineOrToAdd(MachineInstr &MI) {
     return false;
   APInt Zeroes = KB->getKnownZeroes(MI.getOperand(1).getReg());
   Zeroes |= KB->getKnownZeroes(MI.getOperand(2).getReg());
-  return Zeroes.isAllOnesValue();
+  return Zeroes.isAllOnes();
 }
 
 bool CombinerHelper::applyCombineOrToAdd(MachineInstr &MI) {
@@ -6678,7 +6680,7 @@ bool CombinerHelper::applyCombineIdentity(MachineInstr &MI) {
   Builder.setInstrAndDebugLoc(MI);
   Observer.changingInstr(MI);
   MI.setDesc(Builder.getTII().get(TargetOpcode::COPY));
-  MI.RemoveOperand(2);
+  MI.removeOperand(2);
   Observer.changedInstr(MI);
   return true;
 }
@@ -6883,8 +6885,8 @@ bool CombinerHelper::matchNarrowLoad(MachineInstr &MI,
   const auto *MMO = MatchInfo.MI->memoperands().front();
   LLT AddrTy = MRI.getType(MatchInfo.MI->getOperand(1).getReg());
   return !MMO->isVolatile() && !MMO->isAtomic() &&
-         MMO->getSizeInBits() >= DstSize &&
-         MatchInfo.Imm <= int64_t(MMO->getSizeInBits() - DstSize) &&
+         MMO->getSizeInBits().getValue() >= DstSize &&
+         MatchInfo.Imm <= int64_t(MMO->getSizeInBits().getValue() - DstSize) &&
          isLegalOrBeforeLegalizer({TargetOpcode::G_LOAD, {DstTy, AddrTy}});
 }
 
@@ -7001,7 +7003,7 @@ bool CombinerHelper::matchNarrowICmp(MachineInstr &MI, TypeImmPair &MatchInfo) {
       if ((KnownNotEqual.Zero |
            APInt::getBitsSet(Ty.getSizeInBits(), MatchInfo.Imm,
                              MatchInfo.Imm + Width))
-              .isAllOnesValue())
+              .isAllOnes())
         return true;
       if (Width == 1)
         break;
@@ -7055,9 +7057,9 @@ bool CombinerHelper::matchSimplifyICmpBool(MachineInstr &MI,
   MatchInfo.Imm = 0;
   ConstantInt *BoolCI[2] = {ConstantInt::getFalse(C), ConstantInt::getTrue(C)};
   for (ConstantInt *InCI : BoolCI)
-    if (Constant *ResC =
-            ConstantExpr::getCompare(Pred, InCI, BoolCI[CmpVal], true))
-      MatchInfo.Imm = MatchInfo.Imm << 1 | (ResC == BoolCI[true]);
+    if (const auto& ResC =
+            ICmpInst::compare(InCI->getValue(), BoolCI[CmpVal]->getValue(), Pred))
+      MatchInfo.Imm = MatchInfo.Imm << 1 | (ResC == BoolCI[true]->getValue());
     else
       return false;
   return true;
@@ -7137,8 +7139,13 @@ void CombinerHelper::applySplitBrCond(MachineInstr &MI) {
     if (SuccMBB->pred_size() == 1) {
       MDT->addNewBlock(&NewMBB, &CurMBB);
       MDT->changeImmediateDominator(SuccMBB, &NewMBB);
-    } else
-      MDT->recordSplitCriticalEdge(&CurMBB, SuccMBB, &NewMBB);
+    } else {
+      // todo: check that this is really correct ??
+      MachinePostDominatorTree PDT(MF);
+      MachineDomTreeUpdater DTU(*MDT, PDT,
+        MachineDomTreeUpdater::UpdateStrategy::Lazy);
+      DTU.splitCriticalEdge(&CurMBB, SuccMBB, &NewMBB);
+    }
   }
   for (MachineInstr &PhiMI : CommonMBB->phis()) {
     for (unsigned I = 1, E = PhiMI.getNumOperands(); I != E; I += 2) {

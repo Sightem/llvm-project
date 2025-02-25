@@ -81,15 +81,17 @@ matchConstant<std::optional<ValueAndVReg>>(Register Reg,
 template <>
 inline std::optional<APInt> matchConstant<APInt>(Register Reg,
                                             const MachineRegisterInfo &MRI) {
-  return matchConstant<std::optional<ValueAndVReg>>(Reg, MRI).getValueOr(None).map(
-      [](ValueAndVReg &&ValAndVReg) { return ValAndVReg.Value; });
+  const auto& Val = matchConstant<std::optional<ValueAndVReg>>(Reg, MRI);
+  if (Val.has_value())
+    return { Val.value()->Value };
+  return { std::nullopt };
 }
 
 template <>
 inline std::optional<const IgnoreMatch>
 matchConstant<const IgnoreMatch>(Register Reg, const MachineRegisterInfo &MRI) {
-  return matchConstant<APInt>(Reg, MRI).map(
-      [](const APInt &) -> const IgnoreMatch { return {}; });
+  matchConstant<APInt>(Reg, MRI);
+  return std::optional<const IgnoreMatch>{ IgnoreMatch{} };
 }
 
 template <typename ConstT>
@@ -98,7 +100,7 @@ inline std::optional<ConstT> matchConstant(Register Reg,
   auto Val = matchConstant<APInt>(Reg, MRI);
   if (Val && Val->getBitWidth() <= 64)
     return Val->getSExtValue();
-  return None;
+  return std::nullopt;
 }
 
 template <typename ConstT> struct ConstantMatch {
@@ -436,7 +438,6 @@ template <typename Class> struct specific_ty {
   }
 };
 
-inline specific_ty<Register> m_SpecificReg(Register R) { return R; }
 inline specific_ty<MachineInstr *> m_SpecificMInstr(MachineInstr *MI) {
   return MI;
 }

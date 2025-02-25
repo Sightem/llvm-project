@@ -294,6 +294,9 @@ bool InlineAsmLowering::lowerInlineAsm(
   // operands to Inst for each constraint. Used for matching input constraints.
   unsigned StartIdx = Inst->getNumOperands();
 
+  // Collects the output operands for later processing
+  GISelAsmOperandInfoVector OutputOperands;
+
   // Track the output registers to copy the output operands into
   ArrayRef<Register> ResRegs = GetOrCreateVRegs(Call);
 
@@ -347,6 +350,9 @@ bool InlineAsmLowering::lowerInlineAsm(
             dbgs() << "Couldn't allocate output register for constraint\n");
         return false;
       }
+
+      // Remember this output operand for later processing
+      OutputOperands.push_back(OpInfo);
 
       // Add information to the INLINEASM instruction to know that this
       // register is set.
@@ -549,7 +555,6 @@ bool InlineAsmLowering::lowerInlineAsm(
   MIRBuilder.insertInstr(Inst);
 
   // Finally, copy the output operands into the output registers
-  ArrayRef<Register> ResRegs = GetOrCreateVRegs(Call);
   if (ResRegs.size() != OutputOperands.size()) {
     LLVM_DEBUG(dbgs() << "Expected the number of output registers to match the "
                          "number of destination registers\n");
@@ -628,7 +633,7 @@ bool InlineAsmLowering::lowerInputAsmOperandForConstraint(
         // Boolean constants should be zero-extended, others are sign-extended
         bool IsBool = CI->getBitWidth() == 1;
         int64_t ExtVal = IsBool ? CI->getZExtValue() : CI->getSExtValue();
-        unsigned Flag = InlineAsm::getFlagWord(InlineAsm::Kind_Imm, 1);
+        unsigned Flag = InlineAsm::Flag(InlineAsm::Kind::Imm, 1);
         Inst.addImm(Flag);
         Inst.addImm(ExtVal);
         return true;

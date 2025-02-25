@@ -423,9 +423,9 @@ static void buildCopyFromRegs(MachineIRBuilder &B, ArrayRef<Register> OrigRegs,
     assert(OrigRegs.size() == 1);
     LLT OrigTy = MRI.getType(OrigRegs[0]);
     unsigned OrigSize = OrigTy.getSizeInBits();
-    unsigned PartSize = PartLLT.getSizeInBits().getFixedSize();
+    unsigned PartSize = PartLLT.getSizeInBits().getFixedValue();
     if (OrigSize == PartSize * Regs.size()) {
-      B.buildMerge(OrigRegs[0], Regs);
+      B.buildMergeValues(OrigRegs[0], Regs);
       return;
     }
     uint64_t Index = 0;
@@ -587,7 +587,7 @@ static void buildCopyToRegs(MachineIRBuilder &B, ArrayRef<Register> DstRegs,
   }
 
   if (!SrcTy.isVector() && !PartTy.isVector()) {
-    if (SrcSize == PartSize * DstRegs.size()) {
+    if (SrcSize == PartSize.getFixedValue() * DstRegs.size()) {
       B.buildUnmerge(DstRegs, SrcReg);
       return;
     }
