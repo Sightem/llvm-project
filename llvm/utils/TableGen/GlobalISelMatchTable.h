@@ -2281,7 +2281,7 @@ public:
 
   void emitActionOpcodes(MatchTable &Table, RuleMatcher &Rule) const override {
     Table << MatchTable::Opcode("GIR_EraseFromParent")
-          << MatchTable::Comment("InsnID") << MatchTable::IntValue(InsnID)
+          << MatchTable::Comment("InsnID") << MatchTable::ULEB128Value(InsnID)
           << MatchTable::LineBreak;
   }
 };
