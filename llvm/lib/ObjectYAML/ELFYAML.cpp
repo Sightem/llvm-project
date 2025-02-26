@@ -924,7 +924,7 @@ void ScalarEnumerationTraits<ELFYAML::ELF_REL>::enumeration(
 #include "llvm/BinaryFormat/ELFRelocs/Xtensa.def"
     break;
   case ELF::EM_Z80:
-#include "llvm/BinaryFormat/ELFRelocs/Z80.def"
+#include "llvm/BinaryFormat/ELFRelocs/z80.def"
     break;
   default:
     // Nothing to do.
