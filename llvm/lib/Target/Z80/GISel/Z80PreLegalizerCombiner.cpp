@@ -60,7 +60,7 @@ public:
 bool Z80PreLegalizerCombinerInfo::combine(GISelChangeObserver &Observer,
                                           MachineInstr &MI,
                                           MachineIRBuilder &B) const {
-  CombinerHelper Helper(Observer, B, KB, MDT);
+  CombinerHelper Helper(Observer, B, true, KB, MDT);
   Z80GenPreLegalizerCombinerHelper Generated(GeneratedRuleCfg, Helper);
   return Generated.tryCombineAll(Observer, MI, B, Helper);
 }
@@ -168,8 +168,8 @@ bool Z80PreLegalizerCombiner::runOnMachineFunction(MachineFunction &MF) {
       IsOptNone ? nullptr : &getAnalysis<MachineDominatorTree>();
   Z80PreLegalizerCombinerInfo PCInfo(EnableOpt, F.hasOptSize(), F.hasMinSize(),
                                      KB, MDT);
-  Combiner C(PCInfo, TPC);
-  return C.combineMachineInstrs(MF, /*CSEInfo*/ nullptr);
+  Combiner C(MF, PCInfo, TPC, KB);
+  return C.combineMachineInstrs();
 }
 
 char Z80PreLegalizerCombiner::ID = 0;
