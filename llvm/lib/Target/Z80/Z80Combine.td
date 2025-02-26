@@ -51,7 +51,7 @@ def Z80PreLegalizerCombinerHelper
 }
 
 def Z80PostLegalizerCombinerHelper
-    : GICombinerHelper<"Z80GenPostLegalizerCombinerHelper", [
+    : GICombiner<"Z80GenPostLegalizerCombinerHelper", [
         combine_identity, narrow_op, simplify_known_const, trunc_ext_fold,
         unmerge_zext_to_zext,
     ]> {
