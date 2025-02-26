@@ -1092,14 +1092,15 @@ enum PredefinedTypeIDs {
 // \brief WebAssembly reference types with auto numeration
 #define WASM_TYPE(Name, Id, SingletonId) PREDEF_TYPE_##Id##_ID,
 #include "clang/Basic/WebAssemblyReferenceTypes.def"
-  // Sentinel value. Considered a predefined type but not useable as one.
-  PREDEF_TYPE_LAST_ID
 
   /// The '__uint48_t' type.
   PREDEF_TYPE_UINT48_ID,
 
   /// The '__int48_t' type.
   PREDEF_TYPE_INT48_ID,
+
+  // Sentinel value. Considered a predefined type but not useable as one.
+  PREDEF_TYPE_LAST_ID
 };
 
 /// The number of predefined type IDs that are reserved for
