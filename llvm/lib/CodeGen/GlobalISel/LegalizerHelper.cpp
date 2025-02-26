@@ -1075,13 +1075,16 @@ LegalizerHelper::libcall(MachineInstr &MI, LostDebugLocObserver &LocObserver) {
   }
   case TargetOpcode::G_CTLZ_ZERO_UNDEF:
   case TargetOpcode::G_CTPOP: {
+    LLT LLTy = MRI.getType(MI.getOperand(0).getReg());
+    unsigned Size = LLTy.getSizeInBits();
     Type *ResTy = IntegerType::get(Ctx, Size);
     unsigned OpSize = MRI.getType(MI.getOperand(1).getReg()).getSizeInBits();
     Type *OpTy = IntegerType::get(Ctx, OpSize);
     auto Libcall = getRTLibDesc(MI.getOpcode(), OpSize);
     auto Status = createLibcall(MIRBuilder, Libcall,
                                 {MI.getOperand(0).getReg(), ResTy, 0},
-                                {{MI.getOperand(1).getReg(), OpTy, 0}});
+                                {{MI.getOperand(1).getReg(), OpTy, 0}},
+                                LocObserver, &MI);
     if (Status != Legalized)
       return Status;
     break;
@@ -1089,6 +1092,8 @@ LegalizerHelper::libcall(MachineInstr &MI, LostDebugLocObserver &LocObserver) {
   case TargetOpcode::G_SHL:
   case TargetOpcode::G_LSHR:
   case TargetOpcode::G_ASHR: {
+    LLT LLTy = MRI.getType(MI.getOperand(0).getReg());
+    unsigned Size = LLTy.getSizeInBits();
     Type *OpTy = IntegerType::get(Ctx, Size);
     auto Libcall = getRTLibDesc(MI.getOpcode(), Size);
     Register AmountReg = MI.getOperand(2).getReg();
@@ -1096,7 +1101,8 @@ LegalizerHelper::libcall(MachineInstr &MI, LostDebugLocObserver &LocObserver) {
         IntegerType::get(Ctx, MRI.getType(AmountReg).getSizeInBits());
     auto Status = createLibcall(
         MIRBuilder, Libcall, {MI.getOperand(0).getReg(), OpTy, 0},
-        {{MI.getOperand(1).getReg(), OpTy, 0}, {AmountReg, AmountTy, 1}});
+        {{MI.getOperand(1).getReg(), OpTy, 0}, {AmountReg, AmountTy, 1}},
+        LocObserver, &MI);
     if (Status != Legalized)
       return Status;
     break;
