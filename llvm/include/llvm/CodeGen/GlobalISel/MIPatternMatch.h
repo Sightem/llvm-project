@@ -72,17 +72,19 @@ template <typename ConstT>
 std::optional<ConstT> matchConstant(Register Reg, const MachineRegisterInfo &MRI);
 
 template <>
-inline std::optional<ValueAndVReg>
-matchConstant<ValueAndVReg>(Register Reg, const MachineRegisterInfo &MRI) {
+inline std::optional<std::optional<ValueAndVReg>>
+matchConstant<std::optional<ValueAndVReg>>(Register Reg,
+                                      const MachineRegisterInfo &MRI) {
   return getIConstantVRegValWithLookThrough(Reg, MRI);
 }
 
 template <>
-inline std::optional<APInt> matchConstant(Register Reg,
-                                          const MachineRegisterInfo &MRI) {
-  if (auto ValAndVReg = getIConstantVRegValWithLookThrough(Reg, MRI))
-    return ValAndVReg->Value;
-  return std::nullopt;
+inline std::optional<APInt> matchConstant<APInt>(Register Reg,
+                                            const MachineRegisterInfo &MRI) {
+  const auto& Val = matchConstant<std::optional<ValueAndVReg>>(Reg, MRI);
+  if (Val.has_value())
+    return { Val.value()->Value };
+  return { std::nullopt };
 }
 
 template <>
@@ -92,14 +94,38 @@ matchConstant<const IgnoreMatch>(Register Reg, const MachineRegisterInfo &MRI) {
   return std::optional<const IgnoreMatch>{ IgnoreMatch{} };
 }
 
-// template <typename ConstT>
-// inline std::optional<ConstT> matchConstant(Register Reg,
-//                                       const MachineRegisterInfo &MRI) {
-//   auto Val = matchConstant<APInt>(Reg, MRI);
-//   if (Val && Val->getBitWidth() <= 64)
-//     return Val->getSExtValue();
-//   return std::nullopt;
-// }
+template <>
+inline std::optional<int64_t> matchConstant<int64_t>(Register Reg,
+                                                     const MachineRegisterInfo &MRI) {
+  auto Val = matchConstant<APInt>(Reg, MRI);
+  if (Val && Val->getBitWidth() <= 64)
+    return Val->getSExtValue();
+  return std::nullopt;
+}
+
+template <>
+inline std::optional<uint64_t> matchConstant<uint64_t>(Register Reg,
+                                                       const MachineRegisterInfo &MRI) {
+  auto Val = matchConstant<APInt>(Reg, MRI);
+  if (Val && Val->getBitWidth() <= 64)
+    return Val->getSExtValue();
+  return std::nullopt;
+}
+
+template <>
+inline std::optional<bool> matchConstant<bool>(Register Reg,
+                                               const MachineRegisterInfo &MRI) {
+  auto Val = matchConstant<APInt>(Reg, MRI);
+  if (Val && Val->getBitWidth() <= 64)
+    return Val->getSExtValue();
+  return std::nullopt;
+}
+
+template <>
+inline std::optional<ValueAndVReg> matchConstant<ValueAndVReg>(Register Reg,
+    const MachineRegisterInfo &MRI) {
+  return getIConstantVRegValWithLookThrough(Reg, MRI);
+}
 
 template <typename ConstT> struct ConstantMatch {
   ConstT &CR;
@@ -116,10 +142,6 @@ template <typename ConstT> struct ConstantMatch {
 inline ConstantMatch<const IgnoreMatch> m_ICst() {
   static constexpr IgnoreMatch ignore;
   return {ignore};
-}
-
-template <typename ConstT> inline ConstantMatch<ConstT> m_ICst(ConstT &Cst) {
-  return {Cst};
 }
 
 template <typename ConstT>
@@ -164,14 +186,14 @@ inline ICstOrSplatMatch<int64_t> m_ICstOrSplat(int64_t &Cst) {
   return ICstOrSplatMatch<int64_t>(Cst);
 }
 
-struct GCstAndRegMatch {
-  std::optional<ValueAndVReg> &ValReg;
-  GCstAndRegMatch(std::optional<ValueAndVReg> &ValReg) : ValReg(ValReg) {}
-  bool match(const MachineRegisterInfo &MRI, Register Reg) {
-    ValReg = getIConstantVRegValWithLookThrough(Reg, MRI);
-    return ValReg ? true : false;
-  }
-};
+template <typename ConstT> inline ConstantMatch<ConstT> m_ICst(ConstT &Cst) {
+  return {Cst};
+}
+
+inline ConstantMatch<std::optional<ValueAndVReg>>
+m_GCst(std::optional<ValueAndVReg> &ValReg) {
+  return {ValReg};
+}
 
 struct GFCstAndRegMatch {
   std::optional<FPValueAndVReg> &FPValReg;
@@ -384,6 +406,36 @@ inline bind_ty<LLT> m_Type(LLT &Ty) { return Ty; }
 inline bind_ty<CmpInst::Predicate> m_Pred(CmpInst::Predicate &P) { return P; }
 inline operand_type_match m_Pred() { return operand_type_match(); }
 
+template <typename BindTy> struct deferred_helper {
+  static bool match(const MachineRegisterInfo &MRI, BindTy &VR, BindTy &V) {
+    return VR == V;
+  }
+};
+
+template <> struct deferred_helper<LLT> {
+  static bool match(const MachineRegisterInfo &MRI, LLT VT, Register R) {
+    return VT == MRI.getType(R);
+  }
+};
+
+template <typename Class> struct deferred_ty {
+  Class &VR;
+
+  deferred_ty(Class &V) : VR(V) {}
+
+  template <typename ITy> bool match(const MachineRegisterInfo &MRI, ITy &&V) {
+    return deferred_helper<Class>::match(MRI, VR, V);
+  }
+};
+
+/// Similar to m_SpecificReg/Type, but the specific value to match originated
+/// from an earlier sub-pattern in the same mi_match expression. For example,
+/// we cannot match `(add X, X)` with `m_GAdd(m_Reg(X), m_SpecificReg(X))`
+/// because `X` is not initialized at the time it's passed to `m_SpecificReg`.
+/// Instead, we can use `m_GAdd(m_Reg(x), m_DeferredReg(X))`.
+inline deferred_ty<Register> m_DeferredReg(Register &R) { return R; }
+inline deferred_ty<LLT> m_DeferredType(LLT &Ty) { return Ty; }
+
 struct ImplicitDefMatch {
   bool match(const MachineRegisterInfo &MRI, Register Reg) {
     MachineInstr *TmpMI;
@@ -433,8 +485,13 @@ struct BinaryOp_match {
       if (TmpMI->getOpcode() == Opcode && TmpMI->getNumOperands() == 3) {
         return (L.match(MRI, TmpMI->getOperand(1).getReg()) &&
                 R.match(MRI, TmpMI->getOperand(2).getReg())) ||
-               (Commutable && (R.match(MRI, TmpMI->getOperand(1).getReg()) &&
-                               L.match(MRI, TmpMI->getOperand(2).getReg())));
+               // NOTE: When trying the alternative operand ordering
+               // with a commutative operation, it is imperative to always run
+               // the LHS sub-pattern  (i.e. `L`) before the RHS sub-pattern
+               // (i.e. `R`). Otherwsie, m_DeferredReg/Type will not work as
+               // expected.
+               (Commutable && (L.match(MRI, TmpMI->getOperand(2).getReg()) &&
+                               R.match(MRI, TmpMI->getOperand(1).getReg())));
       }
     }
     return false;
@@ -458,8 +515,13 @@ struct BinaryOpc_match {
           TmpMI->getNumOperands() == 3) {
         return (L.match(MRI, TmpMI->getOperand(1).getReg()) &&
                 R.match(MRI, TmpMI->getOperand(2).getReg())) ||
-               (Commutable && (R.match(MRI, TmpMI->getOperand(1).getReg()) &&
-                               L.match(MRI, TmpMI->getOperand(2).getReg())));
+               // NOTE: When trying the alternative operand ordering
+               // with a commutative operation, it is imperative to always run
+               // the LHS sub-pattern  (i.e. `L`) before the RHS sub-pattern
+               // (i.e. `R`). Otherwsie, m_DeferredReg/Type will not work as
+               // expected.
+               (Commutable && (L.match(MRI, TmpMI->getOperand(2).getReg()) &&
+                               R.match(MRI, TmpMI->getOperand(1).getReg())));
       }
     }
     return false;
@@ -570,15 +632,27 @@ m_GAShr(const LHS &L, const RHS &R) {
 }
 
 template <typename LHS, typename RHS>
-inline BinaryOp_match<LHS, RHS, TargetOpcode::G_SMAX, false>
+inline BinaryOp_match<LHS, RHS, TargetOpcode::G_SMAX, true>
 m_GSMax(const LHS &L, const RHS &R) {
-  return BinaryOp_match<LHS, RHS, TargetOpcode::G_SMAX, false>(L, R);
+  return BinaryOp_match<LHS, RHS, TargetOpcode::G_SMAX, true>(L, R);
 }
 
 template <typename LHS, typename RHS>
-inline BinaryOp_match<LHS, RHS, TargetOpcode::G_SMIN, false>
+inline BinaryOp_match<LHS, RHS, TargetOpcode::G_SMIN, true>
 m_GSMin(const LHS &L, const RHS &R) {
-  return BinaryOp_match<LHS, RHS, TargetOpcode::G_SMIN, false>(L, R);
+  return BinaryOp_match<LHS, RHS, TargetOpcode::G_SMIN, true>(L, R);
+}
+
+template <typename LHS, typename RHS>
+inline BinaryOp_match<LHS, RHS, TargetOpcode::G_UMAX, true>
+m_GUMax(const LHS &L, const RHS &R) {
+  return BinaryOp_match<LHS, RHS, TargetOpcode::G_UMAX, true>(L, R);
+}
+
+template <typename LHS, typename RHS>
+inline BinaryOp_match<LHS, RHS, TargetOpcode::G_UMIN, true>
+m_GUMin(const LHS &L, const RHS &R) {
+  return BinaryOp_match<LHS, RHS, TargetOpcode::G_UMIN, true>(L, R);
 }
 
 // Helper for unary instructions (G_[ZSA]EXT/G_TRUNC) etc
